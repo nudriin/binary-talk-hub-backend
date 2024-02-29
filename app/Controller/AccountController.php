@@ -39,7 +39,7 @@ class AccountController
             $request = json_decode($json);
 
             if (!isset($request->username) || !isset($request->email) || !isset($request->name) || !isset($request->password)) {
-                throw new ValidationException("username, email, nama and password is required");
+                throw new ValidationException("username, email, nama and password is required", 400);
             }
 
             $registerRequest = new AccountRegisterRequest();
@@ -60,7 +60,7 @@ class AccountController
             ]);
 
         } catch (ValidationException $e) {
-            http_response_code(400);
+            http_response_code($e->getCode());
             echo json_encode([
                 'errors' => $e->getMessage()
             ]);
@@ -76,7 +76,7 @@ class AccountController
             $request = json_decode($json);
 
             if (!isset($request->username) || !isset($request->password)) {
-                throw new ValidationException("username and password is required");
+                throw new ValidationException("username and password is required", 400);
             }
 
             $loginRequest = new AccountLoginRequest();
@@ -92,7 +92,7 @@ class AccountController
                 ]
             ]);
         } catch (ValidationException $e) {
-            http_response_code(400);
+            http_response_code($e->getCode());
             echo json_encode([
                     'errors' => $e->getMessage()
             ]);
@@ -107,7 +107,7 @@ class AccountController
             $headers = apache_response_headers();
 
             if($headers['user'] == null || !isset($headers['user'])){
-                throw new ValidationException("Unauthorized");
+                throw new ValidationException("Unauthorized", 401);
             }
             
             $user = json_decode($headers['user']);
@@ -117,7 +117,7 @@ class AccountController
             ]);
             
         } catch (ValidationException $e) {
-            http_response_code(400);
+            http_response_code($e->getCode());
             echo json_encode([
                     'errors' => $e->getMessage()
             ]);
@@ -130,7 +130,7 @@ class AccountController
         try {
             $headers = apache_response_headers();
             if(!isset($headers['user']) || $headers['user'] == null){
-                throw new ValidationException("Unauthorized");
+                throw new ValidationException("Unauthorized", 401);
             }
             $user = json_decode($headers['user']);
 
@@ -160,7 +160,7 @@ class AccountController
             ]);
 
         } catch (ValidationException $e) {
-            http_response_code(400);
+            http_response_code($e->getCode());
             echo json_encode([
                     'errors' => $e->getMessage()
             ]);
@@ -173,14 +173,14 @@ class AccountController
         try {
             $headers = apache_response_headers();
             if(!isset($headers['user']) || $headers['user'] == null){
-                throw new ValidationException("Unauthorized");
+                throw new ValidationException("Unauthorized", 401);
             }
             $user = json_decode($headers['user']);
 
             $json = file_get_contents('php://input');
             $request = json_decode($json);
             if(!isset($request->old_password) || !isset($request->new_password) || $request->old_password == null || $request->new_password == null){
-                throw new ValidationException("old_password and new_password is required");
+                throw new ValidationException("old_password and new_password is required", 400);
             }
 
             $passwordRequest = new AccountPasswordRequest();
@@ -200,7 +200,7 @@ class AccountController
             ]);
             
         } catch (ValidationException $e) {
-            http_response_code(400);
+            http_response_code($e->getCode());
             echo json_encode([
                     'errors' => $e->getMessage()
             ]);
@@ -213,7 +213,11 @@ class AccountController
         try {
             
         } catch (ValidationException $e) {
-            
+            http_response_code($e->getCode());
+            echo json_encode([
+                    'errors' => $e->getMessage()
+            ]);
+            exit();
         }
     }
 }

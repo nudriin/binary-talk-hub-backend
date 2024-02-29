@@ -39,12 +39,12 @@ class AccountService
             Database::beginTransaction();
             $account = $this->accountRepository->findAccount($request->username, 'username');
             if ($account != null) {
-                throw new ValidationException("Username is already exist");
+                throw new ValidationException("Username is already exist", 400);
             }
 
             $account = $this->accountRepository->findAccount($request->email, 'email');
             if ($account != null) {
-                throw new ValidationException("Email is already exist");
+                throw new ValidationException("Email is already exist", 400);
             }
 
             $account = new Account();
@@ -72,11 +72,11 @@ class AccountService
             $request->username == null || $request->email == null || $request->name == null || $request->password == null ||
             trim($request->username) == "" || trim($request->email) == "" || trim($request->name) == "" || trim($request->password) == ""
         ) {
-            throw new ValidationException("Username, email, nama, dan password is required");
+            throw new ValidationException("Username, email, nama, dan password is required", 400);
         }
         
         if(!filter_var($request->email, FILTER_VALIDATE_EMAIL)){
-            throw new ValidationException("Email must be valid email");
+            throw new ValidationException("Email must be valid email", 400);
         }
     }
 
@@ -86,7 +86,7 @@ class AccountService
         try {
             $account = $this->accountRepository->findAccount($request->username, 'username');
             if ($account == null) {
-                throw new ValidationException("Username or password is wrong");
+                throw new ValidationException("Username or password is wrong", 400);
             }
             if (password_verify($request->password, $account->password)) {
                 $response = new AccountLoginResponse();
@@ -102,7 +102,7 @@ class AccountService
 
                 return $response;
             } else {
-                throw new ValidationException("Username or password is wrong");
+                throw new ValidationException("Username or password is wrong", 400);
             }
         } catch (ValidationException $e) {
             throw $e;
@@ -116,7 +116,7 @@ class AccountService
             $request->username == null || $request->password == null ||
             trim($request->username) == "" || trim($request->password) == ""
         ) {
-            throw new ValidationException("Username and password is required");
+            throw new ValidationException("Username and password is required", 400);
         }
     }
 
@@ -127,7 +127,7 @@ class AccountService
         try {
             $account = $this->accountRepository->findAccount($request->username, 'username');
             if ($account == null) {
-                throw new ValidationException("User not found");
+                throw new ValidationException("User not found", 404);
             }
 
             $response = new AccountGetResponse();
@@ -142,7 +142,7 @@ class AccountService
     public function ValidateGetUser(AccountGetRequest $request)
     {
         if ($request->username == null || trim($request->username) == "") {
-            throw new ValidationException("User not found");
+            throw new ValidationException("User not found", 404);
         }
     }
 
@@ -153,7 +153,7 @@ class AccountService
             Database::beginTransaction();
             $account = $this->accountRepository->findAccount($request->username, 'username');
             if ($account == null) {
-                throw new ValidationException("User not found");
+                throw new ValidationException("User not found", 404);
             }
 
             // cek jika user da ngirim request nama
@@ -161,7 +161,7 @@ class AccountService
                 $account->name = $request->name;
             }
             
-            if ($request->profile_pic !== null && trim($request->name) != "") {
+            if ($request->profile_pic !== null && trim($request->profile_pic) != "") {
                 $account->profile_pic = $request->profile_pic;
             }
 
@@ -180,7 +180,7 @@ class AccountService
     public function validateAccountUpdateProfile(AccountUpdateProfileRequest $request)
     {
         if ($request->username == null || trim($request->username) == "") {
-            throw new ValidationException("User not found");
+            throw new ValidationException("User not found", 404);
         }
     }
 
@@ -191,11 +191,11 @@ class AccountService
             Database::beginTransaction();
             $account = $this->accountRepository->findAccount($request->username, 'username');
             if ($account == null) {
-                throw new ValidationException("User not found");
+                throw new ValidationException("User not found", 404);
             }
 
             if (!password_verify($request->oldPassword, $account->password)) {
-                throw new ValidationException("Old password is wrong");
+                throw new ValidationException("Old password is wrong", 400);
             }
 
             $account->password = password_hash($request->newPassword, PASSWORD_BCRYPT);
@@ -214,7 +214,7 @@ class AccountService
     public function validateChangePassword(AccountPasswordRequest $request)
     {
         if ($request->oldPassword == null || $request->newPassword == null || trim($request->oldPassword) == "" || trim($request->newPassword) == "") {
-            throw new ValidationException("Password is required");
+            throw new ValidationException("Password is required", 400);
         }
     }
     
@@ -225,7 +225,7 @@ class AccountService
             Database::beginTransaction();
             $account = $this->accountRepository->findAccount($request->username, 'username');
             if($account == null){
-                throw new ValidationException("User not found");
+                throw new ValidationException("User not found", 404);
             }
             $this->accountRepository->deleteByUsername($account->username);
             Database::commitTransaction();
@@ -239,7 +239,7 @@ class AccountService
     public function validateDeleteAccount(AccountDeleteRequest $request)
     {
         if ($request->username == null || trim($request->username) == "") {
-            throw new ValidationException("Password is required");
+            throw new ValidationException("Password is required", 400);
         }
     }
 

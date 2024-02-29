@@ -2,6 +2,7 @@
 namespace Nurdin\BinaryTalk\Middleware;
 
 use Dotenv\Dotenv;
+use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Nurdin\BinaryTalk\Config\Database;
@@ -10,7 +11,6 @@ use Nurdin\BinaryTalk\Middleware\Middleware;
 use Nurdin\BinaryTalk\Model\Account\AccountGetRequest;
 use Nurdin\BinaryTalk\Repository\AccountRepository;
 use Nurdin\BinaryTalk\Service\AccountService;
-use stdClass;
 
 class AuthMiddleware implements Middleware
 {
@@ -27,10 +27,10 @@ class AuthMiddleware implements Middleware
     public function auth() : void
     {
         try {
-            $headers = getallheaders();
-            if (!isset($headers['Authorization'])) throw new ValidationException("Unauthorized");
+            $authorization = $_SERVER['HTTP_AUTHORIZATION'];
+            if (!isset($authorization)) throw new ValidationException("Unauthorized", 401);
 
-            list(, $token) = explode(' ', $headers['Authorization']);
+            list(, $token) = explode(' ', $authorization);
             $payload = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
 
             $request = new AccountGetRequest();
@@ -49,12 +49,12 @@ class AuthMiddleware implements Middleware
             $json = json_encode($user);
             header("user: $json");
 
-        } catch (ValidationException $e) {
-            http_response_code(400);
+        } catch (Exception $e) {
+            // SignatureInvalidException // ! error dari jwtnya
+            http_response_code($e->getCode());
             echo json_encode([
                 'errors' => $e->getMessage()
             ]);
-            http_response_code(400);
             exit();
         }
     }
