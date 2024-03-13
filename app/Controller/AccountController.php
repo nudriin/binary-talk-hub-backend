@@ -13,6 +13,7 @@ use Nurdin\BinaryTalk\Model\Account\AccountUpdateProfileRequest;
 use Nurdin\BinaryTalk\Repository\AccountRepository;
 use Nurdin\BinaryTalk\Service\AccountService;
 use Dotenv\Dotenv;
+use Nurdin\BinaryTalk\Model\Account\AccountDeleteRequest;
 
 class AccountController
 {
@@ -211,7 +212,20 @@ class AccountController
     public function remove()
     {
         try {
+            $headers = apache_response_headers();
+            if(!isset($headers['user']) || $headers['user'] == null){
+                throw new ValidationException("Unauthorized", 401);
+            }
+            $user = json_decode($headers['user']);
+
+            $deleteRequest = new AccountDeleteRequest();
+            $deleteRequest->username = $user->username;
             
+            $this->accountService->deleteAccount($deleteRequest);
+
+            echo json_encode([
+                'data' => 'OK'
+            ]);
         } catch (ValidationException $e) {
             http_response_code($e->getCode());
             echo json_encode([
