@@ -55,4 +55,20 @@ class AccountRepository
         $stmt = $this->connection->prepare("DELETE FROM user WHERE username = ?");
         $stmt->execute([$username]);
     }
+
+    public function findCountPengguna() : array
+    {
+        $stmt = $this->connection->prepare("SELECT Negara, COUNT(*) AS Jumlah_Pengguna FROM pengguna GROUP BY Negara");
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function findAllPengguna() : array
+    {
+        $stmt = $this->connection->prepare("SELECT * FROM pengguna");
+        $stmt->execute();
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

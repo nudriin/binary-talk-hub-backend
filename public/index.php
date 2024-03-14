@@ -17,4 +17,6 @@ Router::add("PATCH", "/v1/api/users/current", AccountController::class, "update"
 Router::add("PATCH", "/v1/api/users/current/password", AccountController::class, "password", [AuthMiddleware::class]);
 Router::add("DELETE", "/v1/api/users/current/delete", AccountController::class, "remove", [AuthMiddleware::class]);
 
+Router::add("GET", "/v1/api/charts", AccountController::class, "getChartData");
+Router::add("GET", "/v1/api/pengguna", AccountController::class, "getAllPengguna");
 Router::run();

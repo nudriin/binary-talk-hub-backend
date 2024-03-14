@@ -4,6 +4,7 @@ namespace Nurdin\BinaryTalk\Controller;
 
 require_once __DIR__ . "/../Helper/ImageHelper.php";
 
+use Exception;
 use Nurdin\BinaryTalk\Config\Database;
 use Nurdin\BinaryTalk\Exception\ValidationException;
 use Nurdin\BinaryTalk\Model\Account\AccountLoginRequest;
@@ -12,18 +13,18 @@ use Nurdin\BinaryTalk\Model\Account\AccountRegisterRequest;
 use Nurdin\BinaryTalk\Model\Account\AccountUpdateProfileRequest;
 use Nurdin\BinaryTalk\Repository\AccountRepository;
 use Nurdin\BinaryTalk\Service\AccountService;
-use Dotenv\Dotenv;
 use Nurdin\BinaryTalk\Model\Account\AccountDeleteRequest;
 
 class AccountController
 {
     private AccountService $accountService;
+    private AccountRepository $accountRepository;
 
     public function __construct()
     {
         $connection = Database::getConnect();
-        $accountRepository = new AccountRepository($connection);
-        $this->accountService = new AccountService($accountRepository);
+        $this->accountRepository = new AccountRepository($connection);
+        $this->accountService = new AccountService($this->accountRepository);
     }
 
     public function register()
@@ -59,14 +60,12 @@ class AccountController
                     'email' => $account->account->email
                 ]
             ]);
-
         } catch (ValidationException $e) {
             http_response_code($e->getCode());
             echo json_encode([
                 'errors' => $e->getMessage()
             ]);
             exit();
-
         }
     }
 
@@ -95,32 +94,30 @@ class AccountController
         } catch (ValidationException $e) {
             http_response_code($e->getCode());
             echo json_encode([
-                    'errors' => $e->getMessage()
+                'errors' => $e->getMessage()
             ]);
             exit();
-
         }
     }
-    
+
     public function current()
     {
         try {
             $headers = apache_response_headers();
 
-            if($headers['user'] == null || !isset($headers['user'])){
+            if ($headers['user'] == null || !isset($headers['user'])) {
                 throw new ValidationException("Unauthorized", 401);
             }
-            
+
             $user = json_decode($headers['user']);
             http_response_code(200);
             echo json_encode([
                 'data' => $user
             ]);
-            
         } catch (ValidationException $e) {
             http_response_code($e->getCode());
             echo json_encode([
-                    'errors' => $e->getMessage()
+                'errors' => $e->getMessage()
             ]);
             exit();
         }
@@ -130,7 +127,7 @@ class AccountController
     {
         try {
             $headers = apache_response_headers();
-            if(!isset($headers['user']) || $headers['user'] == null){
+            if (!isset($headers['user']) || $headers['user'] == null) {
                 throw new ValidationException("Unauthorized", 401);
             }
             $user = json_decode($headers['user']);
@@ -141,11 +138,11 @@ class AccountController
             $updateRequest = new AccountUpdateProfileRequest();
             $updateRequest->username = $user->username;
 
-            if(isset($request->name) && $request->name != null){
+            if (isset($request->name) && $request->name != null) {
                 $updateRequest->name = $request->name;
             }
-            
-            if(isset($request->profile_pic) && $request->profile_pic != null){
+
+            if (isset($request->profile_pic) && $request->profile_pic != null) {
                 $updateRequest->profile_pic = $request->profile_pic;
             }
 
@@ -159,11 +156,10 @@ class AccountController
                     'profile_pic' => $account->account->profile_pic,
                 ]
             ]);
-
         } catch (ValidationException $e) {
             http_response_code($e->getCode());
             echo json_encode([
-                    'errors' => $e->getMessage()
+                'errors' => $e->getMessage()
             ]);
             exit();
         }
@@ -173,14 +169,14 @@ class AccountController
     {
         try {
             $headers = apache_response_headers();
-            if(!isset($headers['user']) || $headers['user'] == null){
+            if (!isset($headers['user']) || $headers['user'] == null) {
                 throw new ValidationException("Unauthorized", 401);
             }
             $user = json_decode($headers['user']);
 
             $json = file_get_contents('php://input');
             $request = json_decode($json);
-            if(!isset($request->old_password) || !isset($request->new_password) || $request->old_password == null || $request->new_password == null){
+            if (!isset($request->old_password) || !isset($request->new_password) || $request->old_password == null || $request->new_password == null) {
                 throw new ValidationException("old_password and new_password is required", 400);
             }
 
@@ -199,11 +195,10 @@ class AccountController
                     'profile_pic' => $account->account->profile_pic,
                 ]
             ]);
-            
         } catch (ValidationException $e) {
             http_response_code($e->getCode());
             echo json_encode([
-                    'errors' => $e->getMessage()
+                'errors' => $e->getMessage()
             ]);
             exit();
         }
@@ -213,14 +208,14 @@ class AccountController
     {
         try {
             $headers = apache_response_headers();
-            if(!isset($headers['user']) || $headers['user'] == null){
+            if (!isset($headers['user']) || $headers['user'] == null) {
                 throw new ValidationException("Unauthorized", 401);
             }
             $user = json_decode($headers['user']);
 
             $deleteRequest = new AccountDeleteRequest();
             $deleteRequest->username = $user->username;
-            
+
             $this->accountService->deleteAccount($deleteRequest);
 
             echo json_encode([
@@ -229,7 +224,39 @@ class AccountController
         } catch (ValidationException $e) {
             http_response_code($e->getCode());
             echo json_encode([
-                    'errors' => $e->getMessage()
+                'errors' => $e->getMessage()
+            ]);
+            exit();
+        }
+    }
+
+    public function getChartData()
+    {
+        try {
+            $data = $this->accountRepository->findCountPengguna();
+            echo json_encode([
+                'data' => $data
+            ]);
+        } catch (Exception $e) {
+            http_response_code($e->getCode());
+            echo json_encode([
+                'errors' => $e->getMessage()
+            ]);
+            exit();
+        }
+    }
+
+    public function getAllPengguna()
+    {
+        try {
+            $data = $this->accountRepository->findAllPengguna();
+            echo json_encode([
+                'data' => $data
+            ]);
+        } catch (Exception $e) {
+            http_response_code($e->getCode());
+            echo json_encode([
+                'errors' => $e->getMessage()
             ]);
             exit();
         }
