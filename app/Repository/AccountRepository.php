@@ -68,7 +68,13 @@ class AccountRepository
     {
         $stmt = $this->connection->prepare("SELECT * FROM pengguna");
         $stmt->execute();
-    
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $all = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->connection->prepare("SELECT Negara, COUNT(*) AS Jumlah_Pengguna FROM pengguna GROUP BY Negara");
+        $stmt->execute();
+        $count = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $data = [
+            'all' => $all,
+            'count' => $count
+        ];
     }
 }
