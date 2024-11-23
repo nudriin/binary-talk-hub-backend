@@ -11,7 +11,7 @@ class Database{
             $port = 3306;
             $dbName = "real_time_chat";
             $username = "root";
-            $password = "hishasyl115a1408";
+            $password = "";
             
             self::$connection = new PDO("mysql:host=$host:$port;dbname=$dbName", $username, $password);
         } 
